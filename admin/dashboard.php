@@ -37,13 +37,26 @@ $rejected = mysqli_fetch_assoc(
 
     <div style="margin-bottom:20px;">
         <p><strong>Total Forms Submitted:</strong> <?php echo $total['total']; ?></p>
-        <p><strong>Approved:</strong> <?php echo $approved['approved']; ?></p>
-        <p><strong>Pending:</strong> <?php echo $pending['pending']; ?></p>
-        <p><strong>Rejected:</strong> <?php echo $rejected['rejected']; ?></p>
+        <p style='color:green'><strong>Approved:</strong> <?php echo $approved['approved']; ?></p>
+        <p style='color:cyan'><strong>Pending:</strong> <?php echo $pending['pending']; ?></p>
+        <p style='color:red'><strong>Rejected:</strong> <?php echo $rejected['rejected']; ?></p>
     </div>
 
 
+
     <div class="dashboard">
+        <div class="card">
+            <h3>Major Centres</h3>
+            <p>Assign exam centres to majors</p>
+            <a href="major_centres.php" class="btn">
+                Manage Centres
+            </a>
+        </div>
+        <div class="card">
+            <h4>Student Applications</h4>
+            <a href="students.php">Open</a>
+        </div>
+
         <div class="card">
             <h4>Manage Subjects</h4>
             <a href="subjects.php">Open</a>

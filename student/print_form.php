@@ -1,6 +1,9 @@
 <?php
 include("../config/db.php");
 
+/* ===============================
+   LOGIN CHECK
+   =============================== */
 if (!isset($_SESSION['student_id'])) {
     header("Location: login.php");
     exit();
@@ -8,70 +11,122 @@ if (!isset($_SESSION['student_id'])) {
 
 $student_id = $_SESSION['student_id'];
 
-/* Fetch form */
-$res = mysqli_query(
-    $conn,
-    "SELECT * FROM exam_forms WHERE student_id=$student_id"
+/* ===============================
+   FETCH STUDENT + FORM DATA
+   =============================== */
+$data = mysqli_fetch_assoc(
+    mysqli_query(
+        $conn,
+        "SELECT 
+            s.name,
+            s.enroll_no,
+            s.semester,
+            s.major,
+            s.selected_subjects,
+            f.subjects,
+            f.status,
+            f.submitted_at,
+            f.centre_code,
+            f.centre_name
+         FROM students s
+         JOIN exam_forms f ON f.student_id = s.id
+         WHERE s.id = $student_id"
+    )
 );
 
-if (mysqli_num_rows($res) == 0) {
-    echo "No form found.";
+
+/* ===============================
+   ALLOW PRINT ONLY IF APPROVED
+   =============================== */
+if (!$data || $data['status'] !== 'Approved') {
+    echo "<h3 style='text-align:center;color:red;'>
+            Examination form is not approved yet.
+          </h3>";
     exit();
 }
 
-$data = mysqli_fetch_assoc($res);
-$subjects = explode(",", $data['subjects']);
+/* ===============================
+   GROUP SUBJECTS BY CATEGORY
+   =============================== */
+$subjectNames = array_map('trim', explode(",", $data['selected_subjects']));
+$grouped = [];
+
+foreach ($subjectNames as $sub) {
+
+    $safeSub = mysqli_real_escape_string($conn, $sub);
+
+    $q = mysqli_query(
+        $conn,
+        "SELECT category FROM subjects
+         WHERE subject_name='$safeSub'
+         LIMIT 1"
+    );
+
+    if ($row = mysqli_fetch_assoc($q)) {
+        $cat = strtoupper($row['category']);
+
+        if ($cat === 'MAJOR') {
+            $grouped['MAJOR'][] = $sub;
+        } elseif ($cat === 'MINOR') {
+            $grouped['MINOR'][] = $sub;
+        } elseif ($cat === 'AEC') {
+            $grouped['AEC'][] = $sub;
+        } elseif ($cat === 'VAC') {
+            $grouped['VAC'][] = $sub;
+        } elseif ($cat === 'SAC' || $cat === 'SEC') {
+            $grouped['SAC / SEC'][] = $sub;
+        } elseif ($cat === 'MDC') {
+            $grouped['MDC'][] = $sub;
+        } else {
+            $grouped['OTHERS'][] = $sub;
+        }
+    }
+}
 ?>
 
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>Examination Form</title>
-
     <style>
         body {
-            font-family: "Times New Roman", serif;
-            background: #fff;
+            font-family: Arial;
             margin: 40px;
         }
 
-        .box {
-            border: 2px solid #000;
-            padding: 20px;
-        }
-
-        h2, h3 {
+        h2,
+        h3 {
             text-align: center;
-            margin-bottom: 10px;
         }
 
-        .row {
-            margin-bottom: 10px;
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0 25px;
         }
 
-        .label {
-            font-weight: bold;
-            display: inline-block;
-            width: 200px;
+        th,
+        td {
+            border: 1px solid #000;
+            padding: 8px;
         }
 
-        ul {
-            margin-top: 10px;
+        th {
+            background: #f0f0f0;
         }
 
-        .footer {
-            margin-top: 60px;
-            display: flex;
-            justify-content: space-between;
-        }
-
-        .sign {
+        .center {
             text-align: center;
-            width: 200px;
+        }
+
+        .print-btn {
+            text-align: center;
+            margin-top: 20px;
         }
 
         @media print {
-            button {
+            .print-btn {
                 display: none;
             }
         }
@@ -80,51 +135,89 @@ $subjects = explode(",", $data['subjects']);
 
 <body>
 
-<button onclick="window.print()">Print / Save as PDF</button>
+    <h2>University Examination Form</h2>
 
-<div class="box">
-    <h2>UNIVERSITY EXAMINATION FORM</h2>
-    <h3>Academic Session 2024-25</h3>
+    <table>
+        <tr>
+            <th>Name</th>
+            <td><?= htmlspecialchars($data['name']) ?></td>
+        </tr>
+        <tr>
+            <th>Enrollment No</th>
+            <td><?= htmlspecialchars($data['enroll_no']) ?></td>
+        </tr>
+        <tr>
+            <th>Semester</th>
+            <td><?= htmlspecialchars($data['semester']) ?></td>
+        </tr>
+        <tr>
+            <th>Major Stream</th>
+            <td><?= htmlspecialchars($data['major']) ?></td>
+        </tr>
+        <tr>
+            <th>Status</th>
+            <td><?= htmlspecialchars($data['status']) ?></td>
+        </tr>
+        <tr>
+            <th>Centre Code</th>
+            <td><?= htmlspecialchars($data['centre_code']) ?></td>
+        </tr>
+        <tr>
+            <th>Centre Name</th>
+            <td><?= htmlspecialchars($data['centre_name']) ?></td>
+        </tr>
 
-    <hr>
+        <tr>
+            <th>Submitted On</th>
+            <td><?= date("d M Y, h:i A", strtotime($data['submitted_at'])) ?></td>
+        </tr>
+    </table>
 
-    <div class="row">
-        <span class="label">Student Name:</span>
-        <?php echo $_SESSION['student_name']; ?>
+    <h3>Registered Subjects</h3>
+
+    <!-- ===== MAJOR SUBJECTS (PRINT ONCE) ===== -->
+    <?php if (!empty($grouped['MAJOR'])) { ?>
+        <h4>Major Subjects</h4>
+        <table>
+            <tr>
+                <th>#</th>
+                <th>Subject</th>
+            </tr>
+            <?php $i = 1;
+            foreach ($grouped['MAJOR'] as $s) { ?>
+                <tr>
+                    <td class="center"><?= $i++ ?></td>
+                    <td><?= htmlspecialchars($s) ?></td>
+                </tr>
+            <?php } ?>
+        </table>
+    <?php } ?>
+
+    <!-- ===== OTHER CATEGORIES (NO MAJOR HERE) ===== -->
+    <?php
+    foreach (['MINOR', 'AEC', 'VAC', 'SAC / SEC', 'MDC', 'OTHERS'] as $cat) {
+        if (empty($grouped[$cat])) continue;
+    ?>
+        <h4><?= $cat ?></h4>
+        <table>
+            <tr>
+                <th>#</th>
+                <th>Subject</th>
+            </tr>
+            <?php $i = 1;
+            foreach ($grouped[$cat] as $s) { ?>
+                <tr>
+                    <td class="center"><?= $i++ ?></td>
+                    <td><?= htmlspecialchars($s) ?></td>
+                </tr>
+            <?php } ?>
+        </table>
+    <?php } ?>
+
+    <div class="print-btn">
+        <button onclick="window.print()">Print</button>
     </div>
-
-    <div class="row">
-        <span class="label">Enrollment No:</span>
-        <?php echo $_SESSION['student_id']; ?>
-    </div>
-
-    <div class="row">
-        <span class="label">Form Status:</span>
-        <?php echo $data['status']; ?>
-    </div>
-
-    <hr>
-
-    <h3>Subjects Applied For</h3>
-
-    <ul>
-        <?php foreach ($subjects as $sub) { ?>
-            <li><?php echo $sub; ?></li>
-        <?php } ?>
-    </ul>
-
-    <div class="footer">
-        <div class="sign">
-            ___________________<br>
-            Student Signature
-        </div>
-
-        <div class="sign">
-            ___________________<br>
-            Controller of Examinations
-        </div>
-    </div>
-</div>
 
 </body>
+
 </html>

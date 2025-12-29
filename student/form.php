@@ -1,11 +1,9 @@
 <?php
-
 include("../config/db.php");
-include("../header.php");
 
-/* =====================
-   CHECK LOGIN
-   ===================== */
+/* ===============================
+   LOGIN CHECK
+   =============================== */
 if (!isset($_SESSION['student_id'])) {
     header("Location: login.php");
     exit();
@@ -13,172 +11,149 @@ if (!isset($_SESSION['student_id'])) {
 
 $student_id = $_SESSION['student_id'];
 
-/* =====================
-   FETCH DEADLINE
-   ===================== */
+/* ===============================
+   FETCH STUDENT DETAILS
+   =============================== */
+$student = mysqli_fetch_assoc(
+    mysqli_query(
+        $conn,
+        "SELECT name, enroll_no, semester, selected_subjects
+         FROM students
+         WHERE id = $student_id"
+    )
+);
+
+/* ===============================
+   SUBMISSION SETTINGS (DEADLINE)
+   =============================== */
 $setting = mysqli_fetch_assoc(
-    mysqli_query($conn, "SELECT submission_deadline FROM settings WHERE id=1")
+    mysqli_query(
+        $conn,
+        "SELECT submission_deadline FROM settings WHERE id = 1"
+    )
 );
 
-$deadline = $setting['submission_deadline'];
+$deadline = $setting['submission_deadline'] ?? null;
 $current_time = date("Y-m-d H:i:s");
-$submission_open = ($current_time <= $deadline);
+$submission_open = (!$deadline || $current_time <= $deadline);
 
-/* =====================
-   CHECK EXISTING FORM
-   ===================== */
-$check = mysqli_query(
+/* ===============================
+   CHECK IF FORM EXISTS
+   =============================== */
+$formRes = mysqli_query(
     $conn,
-    "SELECT * FROM exam_forms WHERE student_id=$student_id"
+    "SELECT * FROM exam_forms WHERE student_id = $student_id"
 );
-?>
 
-<link rel="stylesheet" href="../assets/css/style.css">
+$form = mysqli_fetch_assoc($formRes);
+$form_status = $form['status'] ?? 'Not Submitted';
 
-<!-- =====================
-     DEADLINE DISPLAY
-     ===================== -->
-<div class="container" style="margin-bottom:20px;">
-    <p><strong>Exam Form Submission Deadline:</strong></p>
+/* ===============================
+   HANDLE FORM SUBMISSION
+   =============================== */
+if (isset($_POST['submit']) && $form_status === 'Not Submitted') {
 
-    <p style="font-size:16px;">
-        <?php echo date("d M Y, h:i A", strtotime($deadline)); ?>
-    </p>
-
-    <?php if ($submission_open) { ?>
-        <p style="color:green; font-weight:bold;">
-            ✅ Submission is OPEN
-        </p>
-    <?php } else { ?>
-        <p style="color:red; font-weight:bold;">
-            ❌ Submission is CLOSED
-        </p>
-    <?php } ?>
-</div>
-
-<?php
-/* =====================
-   CASE 1: FORM EXISTS
-   ===================== */
-if (mysqli_num_rows($check) > 0) {
-
-    $data = mysqli_fetch_assoc($check);
-    $subjectsArray = explode(",", $data['subjects']);
-?>
-
-    <div class="container">
-        <h3>Examination Form</h3>
-
-        <?php if (!$submission_open) { ?>
-            <p style="color:red; font-weight:bold;">
-                ⚠️ Submission period is over. You cannot edit or delete this form.
-            </p>
-        <?php } ?>
-
-        <p><strong>Status:</strong>
-            <span class="status <?php echo $data['status']; ?>">
-                <?php echo $data['status']; ?>
-            </span>
-        </p>
-
-        <h4>Selected Subjects</h4>
-        <ul>
-            <?php foreach ($subjectsArray as $sub) { ?>
-                <li><?php echo $sub; ?></li>
-            <?php } ?>
-        </ul>
-
-        <?php if ($data['status'] == "Pending" && $submission_open) { ?>
-            <br>
-
-            <a href="edit_form.php">Edit Form</a>
-            <a href="delete_form.php"
-                onclick="return confirm('Are you sure you want to delete this form?')"
-                style="color:red; margin-left:15px;">
-                Delete Form
-            </a>
-        <?php }
-        ?><br><br>
-        <a href="print_form.php" target="_blank">
-            🖨️ Print Examination Form
-        </a>
-
-    </div>
-
-<?php
-    exit();
-}
-
-/* =====================
-   CASE 2: NO FORM + DEADLINE CLOSED
-   ===================== */
-if (!$submission_open) {
-?>
-    <div class="container" align="center">
-        <h3>Form Submission Closed</h3>
-        <p>The deadline for submitting the examination form has passed.</p>
-    </div>
-<?php
-    exit();
-}
-
-/* =====================
-   CASE 3: SUBMIT NEW FORM
-   ===================== */
-if (isset($_POST['submit'])) {
-
-    if (!isset($_POST['subjects']) || count($_POST['subjects']) < 1) {
-        echo "<div class='container' style='color:red; text-align:center;'>
-                Please select at least one subject.
-              </div>";
+    if (!$submission_open) {
+        $error = "Form submission deadline has passed.";
     } else {
-        $subjects = implode(",", $_POST['subjects']);
-
         mysqli_query(
             $conn,
-            "INSERT INTO exam_forms (student_id, subjects)
-             VALUES ($student_id, '$subjects')"
+            "INSERT INTO exam_forms (student_id, status)
+             VALUES ($student_id, 'Pending')"
         );
-
         header("Location: form.php");
         exit();
     }
 }
-
-/* =====================
-   FETCH SUBJECTS
-   ===================== */
-$res = mysqli_query($conn, "SELECT * FROM subjects");
 ?>
 
-<!-- =====================
-     NEW FORM UI
-     ===================== -->
-<div class="container">
+<link rel="stylesheet" href="../assets/css/style.css">
+
+<!-- ===============================
+     STUDENT INFO CARD
+     =============================== -->
+<div class="container" style="margin-bottom:20px;">
     <h3>Examination Form</h3>
 
-    <div style="background:#f9f9f9; padding:15px; border-radius:6px; margin-bottom:20px;">
-        <p><strong>Name:</strong> <?php echo $_SESSION['student_name']; ?></p>
-        <p><strong>Enrollment No:</strong> <?php echo $_SESSION['student_id']; ?></p>
-        <p><strong>Form Status:</strong>
-            <span class="status Pending">Not Submitted</span>
+    <p><strong>Name:</strong> <?php echo htmlspecialchars($student['name']); ?></p>
+    <p><strong>Enrollment No:</strong> <?php echo htmlspecialchars($student['enroll_no']); ?></p>
+    <p><strong>Semester:</strong> <?php echo htmlspecialchars($student['semester']); ?></p>
+
+    <p><strong>Form Status:</strong>
+    <?php if ($form_status === 'Not Submitted') { ?>
+        <span class="status Pending">Not Submitted</span>
+    <?php } else { ?>
+        <span class="status <?php echo $form_status; ?>">
+            <?php echo $form_status; ?>
+        </span>
+      <?php if ($form['status'] == 'Approved') { ?>
+    <div style="background:#eef6ff; padding:10px; margin-top:10px;">
+        <p><strong>Exam Centre</strong></p>
+        <p>
+            Centre Code: <?= htmlspecialchars($form['centre_code']) ?><br>
+            Centre Name: <?= htmlspecialchars($form['centre_name']) ?>
         </p>
     </div>
+<?php } ?>
+  
+    <?php } ?>
+</p>
 
-    <form method="post">
-        <h4>Select Subjects</h4>
 
-        <?php while ($row = mysqli_fetch_assoc($res)) { ?>
-            <div>
-                <input type="checkbox" name="subjects[]"
-                    value="<?php echo $row['subject_name']; ?>">
-                <?php echo $row['subject_name']; ?>
-            </div>
+  <?php if ($deadline && $form_status === 'Not Submitted') { ?>
+    <p><strong>Submission Deadline:</strong>
+        <?php echo date("d M Y, h:i A", strtotime($deadline)); ?>
+    </p>
+<?php } ?>
+
+
+<!-- ===============================
+     SUBJECT LIST (READ-ONLY)
+     =============================== -->
+<div class="container">
+    <h4>Registered Subjects</h4>
+
+    <?php if (!empty($student['selected_subjects'])) { ?>
+        <ul>
+            <?php
+            $subjects = explode(",", $student['selected_subjects']);
+            foreach ($subjects as $sub) {
+                echo "<li>" . htmlspecialchars(trim($sub)) . "</li>";
+            }
+            ?>
+        </ul>
+    <?php } else { ?>
+        <p>No subjects found.</p>
+    <?php } ?>
+</div>
+
+<!-- ===============================
+     FORM ACTIONS
+     =============================== -->
+<?php if ($form_status === 'Not Submitted') { ?>
+
+    <div class="container" style="margin-top:20px;">
+
+        <?php if (!$submission_open) { ?>
+            <p style="color:red; font-weight:bold;">
+                ❌ Form submission period is closed.
+            </p>
+        <?php } else { ?>
+            <form method="post">
+                <button type="submit" name="submit">
+                    Submit Examination Form
+                </button>
+            </form>
         <?php } ?>
 
-        <br>
-        <button type="submit" name="submit">
-            Submit Examination Form
-        </button>
-    </form>
-</div>
+    </div>
+
+<?php } if ($form_status === 'Approved') { ?>
+
+    <div class="container" style="margin-top:20px;">
+        <a href="print_form.php" target="_blank">
+            🖨️ Print Examination Form
+        </a>
+    </div>
+
+<?php } ?>

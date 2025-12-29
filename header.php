@@ -14,7 +14,7 @@ $BASE_URL = "/exam";
 </head>
 <body>
 
-<div style="background:#0b3c5d; padding:12px;">
+<div style="background: rgba(6, 222, 49, 0.6); padding:12px;">
     <div style="max-width:1000px; margin:auto; display:flex; align-items:center;">
         
         <h3 style="color:white;">Exam Form System</h3>

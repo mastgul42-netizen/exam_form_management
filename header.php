@@ -7,33 +7,42 @@ $BASE_URL = "/exam";
 ?>
 
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
     <title>Exam Form Management System</title>
     <link rel="stylesheet" href="<?= $BASE_URL ?>/assets/css/style.css">
 </head>
+
 <body>
 
-<div style="background: rgba(6, 222, 49, 0.6); padding:12px;">
-    <div style="max-width:1000px; margin:auto; display:flex; align-items:center;">
-        
-        <h3 style="color:white;">Exam Form System</h3>
+<header class="main-header">
+    <div class="header-inner">
 
-        <div style="margin-left:auto;">
-            <a href="<?= $BASE_URL ?>/" style="color:white; margin-right:15px;">Home</a>
+        <!-- LOGO / TITLE -->
+        <div class="logo">
+            <a href="<?= $BASE_URL ?>/">Exam Form System</a>
+        </div>
+
+        <!-- NAVIGATION -->
+        <nav class="main-nav">
+
+            <a href="<?= $BASE_URL ?>/">Home</a>
 
             <?php if (isset($_SESSION['admin'])) { ?>
-                <a href="<?= $BASE_URL ?>/admin/dashboard.php" style="color:white; margin-right:15px;">Dashboard</a>
-                <a href="<?= $BASE_URL ?>/admin/logout.php" style="color:white;">Logout</a>
+                <a href="<?= $BASE_URL ?>/admin/dashboard.php">Dashboard</a>
+                <a href="<?= $BASE_URL ?>/admin/logout.php" class="logout">Logout</a>
 
             <?php } elseif (isset($_SESSION['student_id'])) { ?>
-                <a href="<?= $BASE_URL ?>/student/dashboard.php" style="color:white; margin-right:15px;">Dashboard</a>
-                <a href="<?= $BASE_URL ?>/student/logout.php" style="color:white;">Logout</a>
+                <a href="<?= $BASE_URL ?>/student/dashboard.php">Dashboard</a>
+                <a href="<?= $BASE_URL ?>/student/logout.php" class="logout">Logout</a>
 
             <?php } else { ?>
-                <a href="<?= $BASE_URL ?>/admin/login.php" style="color:white; margin-right:15px;">Admin</a>
-                <a href="<?= $BASE_URL ?>/student/" style="color:white;">Student</a>
+                <a href="<?= $BASE_URL ?>/admin/login.php">Admin</a>
+                <a href="<?= $BASE_URL ?>/student/">Student</a>
             <?php } ?>
-        </div>
+
+        </nav>
+
     </div>
-</div>
+</header>

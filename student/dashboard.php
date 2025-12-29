@@ -1,7 +1,6 @@
 <?php
 include("../config/db.php");
 include("../header.php");
-    
 
 if (!isset($_SESSION['student_id'])) {
     header("Location: login.php");
@@ -12,18 +11,34 @@ if (!isset($_SESSION['student_id'])) {
 <link rel="stylesheet" href="../assets/css/style.css">
 
 <div class="container">
-    <h3>Welcome <?php echo $_SESSION['student_name']; ?></h3>
 
-    <div class="dashboard">
-        <div class="card">
-            <h4>Fill/View Exam Form</h4>
-            <a href="form.php">Open</a>
-        </div>
-
-        <div class="card">
-            <h4>Logout</h4>
-            <a href="logout.php">Logout</a>
-        </div>
+    <!-- PAGE HEADER -->
+    <div class="page-header">
+        <h3>Student Dashboard</h3>
+        <span>Welcome, <?php echo htmlspecialchars($_SESSION['student_name']); ?></span>
     </div>
-</div>
 
+    <!-- STUDENT ACTIONS -->
+    <div class="dashboard action-dashboard">
+
+        <div class="dashboard-card">
+            <h4>Examination Form</h4>
+            <p>Fill, view, or update your exam form</p>
+            <a href="form.php" class="btn">Open</a>
+        </div>
+
+        <div class="dashboard-card">
+            <h4>Print Form</h4>
+            <p>print your submitted exam form details</p>
+            <a href="print_form.php" class="btn">View</a>
+        </div>
+
+        <div class="dashboard-card">
+            <h4>Logout</h4>
+            <p>Securely log out of your account</p>
+            <a href="logout.php" class="btn btn-danger">Logout</a>
+        </div>
+
+    </div>
+
+</div>

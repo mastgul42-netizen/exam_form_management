@@ -142,9 +142,9 @@ $res = mysqli_query(
 
         <?php if ($row['status'] == 'Pending') { ?>
             <br><br>
-            <a href="?approve=<?= $row['id'] ?>">Approve</a> |
+            <a href="?approve=<?= $row['id'] ?>"class="approve">Approve</a> |
             <a href="?reject=<?= $row['id'] ?>"
-               onclick="return confirm('Reject this form?')">
+               onclick="return confirm('Reject this form?')"class="reject">
                Reject
             </a>
         <?php } ?>

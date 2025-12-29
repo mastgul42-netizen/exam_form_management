@@ -2,19 +2,30 @@
 <link rel="stylesheet" href="assets/css/style.css">
 
 <div class="container">
-    <h3>Welcome</h3>
 
-    <div class="dashboard">
-        <div class="card">
-            <h4>Admin Login</h4>
-            <a href="admin/login.php">Open</a>
-        </div>
-
-        <div class="card">
-            <h4>Student Zone</h4>
-            <a href="student/">Open</a>
-        </div>
+    <!-- PAGE HEADER -->
+    <div class="page-header">
+        <h3>Welcome to Examination Portal</h3>
+        <span>Select your role to continue</span>
     </div>
+
+    <!-- ENTRY POINTS -->
+    <div class="dashboard action-dashboard">
+
+        <div class="dashboard-card">
+            <h4>Administrator</h4>
+            <p>Login to manage students, subjects, forms, and centres</p>
+            <a href="admin/login.php" class="btn">Admin Login</a>
+        </div>
+
+        <div class="dashboard-card">
+            <h4>Student Zone</h4>
+            <p>Register, login, fill exam form, and view centre details</p>
+            <a href="student/" class="btn">Enter Student Zone</a>
+        </div>
+
+    </div>
+
 </div>
 
 <?php include("footer.php"); ?>

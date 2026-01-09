@@ -4,7 +4,7 @@ if (session_status() == PHP_SESSION_NONE) {
 }
 
 $BASE_URL = "/exam";
-?>
+?> 
 
 <!DOCTYPE html>
 <html lang="en">
@@ -27,8 +27,6 @@ $BASE_URL = "/exam";
         <!-- NAVIGATION -->
         <nav class="main-nav">
 
-            <a href="<?= $BASE_URL ?>/">Home</a>
-
             <?php if (isset($_SESSION['admin'])) { ?>
                 <a href="<?= $BASE_URL ?>/admin/dashboard.php">Dashboard</a>
                 <a href="<?= $BASE_URL ?>/admin/logout.php" class="logout">Logout</a>
@@ -46,3 +44,6 @@ $BASE_URL = "/exam";
 
     </div>
 </header>
+</body>
+</html>
+

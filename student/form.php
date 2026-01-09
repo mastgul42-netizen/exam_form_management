@@ -17,7 +17,7 @@ $student_id = $_SESSION['student_id'];
 $student = mysqli_fetch_assoc(
     mysqli_query(
         $conn,
-        "SELECT name, enroll_no, semester, selected_subjects
+        "SELECT name, enroll_no, semester, selected_subjects,major
          FROM students
          WHERE id = $student_id"
     )
@@ -77,8 +77,8 @@ if (isset($_POST['submit']) && $form_status === 'Not Submitted') {
 
     <p><strong>Name:</strong> <?php echo htmlspecialchars($student['name']); ?></p>
     <p><strong>Enrollment No:</strong> <?php echo htmlspecialchars($student['enroll_no']); ?></p>
+    <p><strong>Major Stream:</strong> <?php echo htmlspecialchars($student['major']); ?></p>
     <p><strong>Semester:</strong> <?php echo htmlspecialchars($student['semester']); ?></p>
-
     <p><strong>Form Status:</strong>
     <?php if ($form_status === 'Not Submitted') { ?>
         <span class="status Pending">Not Submitted</span>

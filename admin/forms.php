@@ -89,17 +89,17 @@ if (isset($_GET['reject'])) {
    =============================== */
 $res = mysqli_query(
     $conn,
-    "SELECT f.*, s.name
+    "SELECT f.*, s.name,s.selected_subjects,s.major
      FROM exam_forms f
      JOIN students s ON s.id = f.student_id
      ORDER BY f.id DESC"
 );
-?>
+?>  
 
 <?php include("../header.php"); ?>
 <link rel="stylesheet" href="../assets/css/style.css">
 
-<h3>Exam Forms</h3>
+<h3 align="center">Exam Forms</h3>
 
 <div class="container">
 
@@ -112,7 +112,7 @@ $res = mysqli_query(
     <tr>
         <th>ID</th>
         <th>Student</th>
-        <th>Subjects</th>
+        <th>Stream</th>
         <th>Centre Code</th>
         <th>Centre Name</th>
         <th>Status</th>
@@ -122,9 +122,9 @@ $res = mysqli_query(
 <?php while ($row = mysqli_fetch_assoc($res)) { ?>
 <tr>
     <td><?= $row['id'] ?></td>
-    <td><?= htmlspecialchars($row['name']) ?></td>
-    <td><?= htmlspecialchars($row['subjects']) ?></td>
-    <td><?= $row['centre_code']?></td>
+    <td><?= ($row['name']) ?></td>
+    <td><?= ($row['major']) ?></td>
+        <td><?= $row['centre_code']?></td>
     <td><?= $row['centre_name'] ?></td>
 
     <td>

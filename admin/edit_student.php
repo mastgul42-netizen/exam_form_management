@@ -1,6 +1,6 @@
 <?php
-session_start();
 include("../config/db.php");
+include("../header.php");
 
 if (!isset($_SESSION['admin'])) {
     header("Location: login.php");
@@ -99,6 +99,10 @@ if (isset($_POST['update'])) {
             <option value="Rejected"
                 <?= $student['status']=='Rejected'?'selected':'' ?>>
                 Rejected
+            </option>
+            <option value="Pending"
+                <?= $student['status']=='Pending'?'selected':'' ?>>
+                Pending
             </option>
         </select>
 

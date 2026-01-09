@@ -37,6 +37,21 @@ $pending_students = mysqli_fetch_assoc(
          WHERE status='Pending'"
     )
 );
+
+/* ===============================
+   REGISTERED BUT NOT SUBMITTED
+   =============================== */
+$not_submitted = mysqli_fetch_assoc(
+    mysqli_query(
+        $conn,
+        "SELECT COUNT(*) AS not_submitted
+         FROM students
+         WHERE status='Approved'
+         AND id NOT IN (
+             SELECT student_id FROM exam_forms
+         )"
+    )
+);
 ?>
 
 <link rel="stylesheet" href="../assets/css/style.css">
@@ -83,6 +98,13 @@ $pending_students = mysqli_fetch_assoc(
             <p>Pending Student Registrations</p>
             <span class="stat-sub">Awaiting enrollment approval</span>
             <a href="students.php">Review Now →</a>
+        </div>
+
+        <!-- ✅ NEW CARD -->
+        <div class="dashboard-card stat-pending">
+            <h2><?= $not_submitted['not_submitted']; ?></h2>
+            <p>Registered but Not Submitted</p>
+            <span class="stat-sub">Approved students without exam form</span>
         </div>
 
     </div>

@@ -22,7 +22,8 @@ if (mysqli_num_rows($form) == 0) {
 }
 
 $data = mysqli_fetch_assoc($form);
-$selected = explode(",", $data['subjects']);
+
+$selected = array_map('trim', explode(",", $data['subjects']));
 
 if (isset($_POST['update'])) {
 
@@ -31,7 +32,6 @@ if (isset($_POST['update'])) {
         echo "<div class='container' style='color:red; text-align:center;'>
                 At least one subject must be selected.
               </div>";
-
     } else {
 
         $subjects = implode(",", $_POST['subjects']);
@@ -48,8 +48,6 @@ if (isset($_POST['update'])) {
         exit();
     }
 }
-
-
 
 $res = mysqli_query($conn, "SELECT * FROM subjects");
 ?>
@@ -69,6 +67,7 @@ $res = mysqli_query($conn, "SELECT * FROM subjects");
             </div>
         <?php } ?>
         <br>
+
         <label><strong>Form Status</strong></label><br>
 
         <select name="status" required>
@@ -82,8 +81,8 @@ $res = mysqli_query($conn, "SELECT * FROM subjects");
                 Rejected
             </option>
         </select>
-<br>
-        <br>
+
+        <br><br>
         <button type="submit" name="update">Update Form</button>
     </form>
 </div>
